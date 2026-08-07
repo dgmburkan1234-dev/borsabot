@@ -38,7 +38,7 @@ if __name__ == "__main__":
             time.sleep(300) # 5 Dakika (300 saniye) bekler
     except KeyboardInterrupt:
         print("\nBot durduruldu.")
-token : 8984612436:AAGmPceC-rxpm269m9RUa1K4LiD1qOTmenE
+
 
 
 
