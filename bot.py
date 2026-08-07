@@ -40,23 +40,7 @@ if __name__ == "__main__":
         print("\nBot durduruldu.")
 token : 8984612436:AAGmPceC-rxpm269m9RUa1K4LiD1qOTmenE
 
-@ddgmburkan
-Id: 5737893588
-First: muhammet
-Lang: tr
-Registered: Check Date (https://t.me/m/ECxXXcW-YWM0)
 
-🧠 Explanations and answers
-Free AI → DeepSeek (https://t.me/deepseek_gidbot) & ChatGPT (https://t.me/chatgpt_gidbot)
-
-🖼 Visualize your ideas
-Make Image → NanoBanana (https://t.me/nanobanana_gidbot)
-
-
-Kullanıcı adı *
-dgmburkan1234-dev
-dgmburkan1234-dev is available.
-Ülkeniz/Bölgeniz *
 
 
 
