@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Bot Başlatma ve Döngü
 print(
     "🤖 Makro Teyitli, Hacimli & Telegram Entegreli Snaypir Botu Devrede (Ana"
@@ -22,7 +21,6 @@ try:
 except KeyboardInterrupt:
   print("\nBot durduruldu.")
   
-=======
 import time
 import pandas as pd
 import yfinance as yf
@@ -193,4 +191,3 @@ try:
 except KeyboardInterrupt:
   print("\nBot durduruldu.")
   
->>>>>>> 97492635f9537d9046ca7b81eab616086d3d9621
