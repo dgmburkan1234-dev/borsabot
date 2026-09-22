@@ -56,25 +56,28 @@ def tarama_yap():
     
     for symbol in hisseler:
         try:
-            df = yf.download(symbol, period="1mo", interval="1d", progress=False)
+            ticker = yf.Ticker(symbol)
+            df = ticker.history(period="1mo", interval="1d")
+            
             if df.empty or len(df) < 5:
+                time.sleep(0.2)
                 continue
             
             cikis_fiyati = float(df['Close'].iloc[-1])
             onceki_fiyat = float(df['Close'].iloc[-2])
             
-            # Örnek sinyal mantığı (Fiyat bir önceki güne göre yükselişteyse)
             if cikis_fiyati > onceki_fiyat:
                 sinyal_mesaji += f"🟢 {symbol} - Fiyat: {cikis_fiyati:.2f}$\n"
                 
+            time.sleep(0.2)  # Yahoo Finance engelini aşmak için kısa bekleme
+                
         except Exception as e:
             print(f"{symbol} taranırken hata: {e}")
+            time.sleep(0.5)
 
     if sinyal_mesaji:
-        # Telegram tek mesayda karakter sınırı (4096) olduğu için parça parça da gönderilebilir
         full_mesaj = f"🚀 <b>NASDAQ TARAMA SİNYALLERİ</b> 🚀\n\n{sinyal_mesaji}"
         
-        # Mesaj çok uzunsa 4000 karakterlik parçalara bölüp gönder
         if len(full_mesaj) > 4000:
             for i in range(0, len(full_mesaj), 4000):
                 telegram_bildirim_gonder(full_mesaj[i:i+4000])
@@ -89,7 +92,7 @@ def tarama_yap():
 def tarama_dongusu():
     while True:
         tarama_yap()
-        time.sleep(3600) # 3600 saniye = 1 saat
+        time.sleep(3600)
 
 # Taramayı arka planda başlat
 threading.Thread(target=tarama_dongusu, daemon=True).start()
