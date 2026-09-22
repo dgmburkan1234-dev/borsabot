@@ -23,11 +23,23 @@ threading.Thread(target=run_flask, daemon=True).start()
 TELEGRAM_TOKEN = "8984612436:AAGmPceC-rxpm269m9RUa1K4LiD1qOTmenE"
 CHAT_ID = "5737893588"
 
+# 150 Hisselik Liste
 hisseler = [
-    "AAPL", "ABNB", "ADI", "AEP", "AMD", "AMX", "ARM", "BKNG", 
-    "CEG", "COIN", "COST", "CTAS", "DLTR", "IBM", "INTC", "INTU", 
-    "ISRG", "MCD", "META", "MRVL", "MU", "NKE", "ODFL", "PAYX", 
-    "PCAR", "PEP", "QCOM", "TMUS", "VRSK", "VRTX", "WBD", "ZS"
+    "AAPL", "ABNB", "ADI", "ADP", "ADSK", "AEP", "AMAT", "AMD", "AMGN", "AMZN",
+    "ANSS", "APP", "ARM", "ASML", "AVGO", "AXON", "AZN", "BKR", "BKNG", "BIIB",
+    "CDNS", "CEG", "CHTR", "CMCSA", "COST", "CPRT", "CRWD", "CSX", "CTAS", "CTSH",
+    "DASH", "DDOG", "DLTR", "DXCM", "EA", "EXC", "FANG", "FAST", "FTNT", "GEHC",
+    "GILD", "GOOG", "GOOGL", "HON", "IDXX", "ILMN", "INKU", "INTC", "INTU", "ISRG",
+    "KDP", "KHC", "KLAC", "LRCX", "LULU", "MAR", "MCHP", "MDLZ", "MELI", "META",
+    "MGM", "MNST", "MRNA", "MRVL", "MSFT", "MU", "NFLX", "NKE", "NVDA", "NXPI",
+    "ODFL", "ORLY", "PANW", "PAYX", "PCAR", "PDD", "PEP", "PYPL", "QCOM", "REGN",
+    "ROP", "ROST", "SBUX", "SNPS", "TEAM", "TMUS", "TSLA", "TTD", "TXN", "VRSK",
+    "VRTX", "WBD", "WDAY", "XEL", "ZS", "ACGL", "AIG", "AIZ", "ALL", "AON",
+    "APA", "APTV", "ACN", "BA", "BAC", "C", "CAT", "CL", "COF", "COP",
+    "CVX", "DAL", "DFS", "DIS", "EMR", "EOG", "FDX", "F", "GD", "GE",
+    "GM", "GS", "HAL", "HD", "IBM", "JNJ", "JPM", "KO", "LOW", "MA",
+    "MCD", "MMM", "MS", "MSI", "NOC", "OXY", "PFE", "PG", "PM", "RTX",
+    "SLB", "T", "TGT", "UNH", "UPS", "USB", "V", "VZ", "WFC", "WMT"
 ]
 
 def telegram_bildirim_gonder(mesaj):
@@ -39,7 +51,7 @@ def telegram_bildirim_gonder(mesaj):
         print(f"Telegram hatasi: {e}")
 
 def tarama_yap():
-    print("Tarama başlatılıyor...")
+    print("150 hisselik tarama başlatılıyor...")
     sinyal_mesaji = ""
     
     for symbol in hisseler:
@@ -48,11 +60,10 @@ def tarama_yap():
             if df.empty or len(df) < 5:
                 continue
             
-            # Örnek sinyal kontrolü (Kendi indikatör/strateji mantığınıza göre düzenleyebilirsiniz)
             cikis_fiyati = float(df['Close'].iloc[-1])
             onceki_fiyat = float(df['Close'].iloc[-2])
             
-            # Fiyat yükselişteyse örnek sinyal metni ekler
+            # Örnek sinyal mantığı (Fiyat bir önceki güne göre yükselişteyse)
             if cikis_fiyati > onceki_fiyat:
                 sinyal_mesaji += f"🟢 {symbol} - Fiyat: {cikis_fiyati:.2f}$\n"
                 
@@ -60,9 +71,17 @@ def tarama_yap():
             print(f"{symbol} taranırken hata: {e}")
 
     if sinyal_mesaji:
+        # Telegram tek mesayda karakter sınırı (4096) olduğu için parça parça da gönderilebilir
         full_mesaj = f"🚀 <b>NASDAQ TARAMA SİNYALLERİ</b> 🚀\n\n{sinyal_mesaji}"
-        telegram_bildirim_gonder(full_mesaj)
-        print("Telegram'a sinyal gönderildi!")
+        
+        # Mesaj çok uzunsa 4000 karakterlik parçalara bölüp gönder
+        if len(full_mesaj) > 4000:
+            for i in range(0, len(full_mesaj), 4000):
+                telegram_bildirim_gonder(full_mesaj[i:i+4000])
+        else:
+            telegram_bildirim_gonder(full_mesaj)
+            
+        print("Telegram'a sinyaller gönderildi!")
     else:
         print("Yeni sinyal bulunamadı.")
 
