@@ -44,7 +44,7 @@ def tarama_yap():
     
     for symbol in hisseler:
         try:
-            df = yf.download(symbol, period="1 mo", interval="1d", progress=False)
+            df = yf.download(symbol, period="1mo", interval="1d", progress=False)
             if df.empty or len(df) < 5:
                 continue
             
