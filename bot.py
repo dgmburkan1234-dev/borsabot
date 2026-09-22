@@ -19,6 +19,12 @@ def run_flask():
 # Flask sunucusunu arka planda başlatıyoruz
 threading.Thread(target=run_flask, daemon=True).start()
 
+# Yahoo Finance isteklerine tarafsız taranma başlığı ekle
+session = requests.Session()
+session.headers.update({
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+})
+
 # Ayarlar
 TELEGRAM_TOKEN = "8984612436:AAGmPceC-rxpm269m9RUa1K4LiD1qOTmenE"
 CHAT_ID = "5737893588"
@@ -56,11 +62,11 @@ def tarama_yap():
     
     for symbol in hisseler:
         try:
-            ticker = yf.Ticker(symbol)
+            ticker = yf.Ticker(symbol, session=session)
             df = ticker.history(period="1mo", interval="1d")
             
             if df.empty or len(df) < 5:
-                time.sleep(0.2)
+                time.sleep(0.3)
                 continue
             
             cikis_fiyati = float(df['Close'].iloc[-1])
@@ -69,7 +75,7 @@ def tarama_yap():
             if cikis_fiyati > onceki_fiyat:
                 sinyal_mesaji += f"🟢 {symbol} - Fiyat: {cikis_fiyati:.2f}$\n"
                 
-            time.sleep(0.2)  # Yahoo Finance engelini aşmak için kısa bekleme
+            time.sleep(0.3)  # İstek aralarına 0.3 saniyelik güvenli bekleme
                 
         except Exception as e:
             print(f"{symbol} taranırken hata: {e}")
