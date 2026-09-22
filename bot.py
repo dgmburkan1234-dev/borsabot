@@ -16,10 +16,10 @@ def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
 
-# Flask sunucusunu arka planda başlatıyoruz
+# Flask sunucusunu arka planda başlatıyoruz (Render health-check)
 threading.Thread(target=run_flask, daemon=True).start()
 
-# Yahoo Finance isteklerine tarafsız taranma başlığı ekle
+# Yahoo Finance istekleri için taranma başlığı
 session = requests.Session()
 session.headers.update({
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -29,8 +29,8 @@ session.headers.update({
 TELEGRAM_TOKEN = "8984612436:AAGmPceC-rxpm269m9RUa1K4LiD1qOTmenE"
 CHAT_ID = "5737893588"
 
-# 150 Hisselik Liste
-hisseler = [
+# 150 NASDAQ Hissesi
+nasdaq_hisseleri = [
     "AAPL", "ABNB", "ADI", "ADP", "ADSK", "AEP", "AMAT", "AMD", "AMGN", "AMZN",
     "ANSS", "APP", "ARM", "ASML", "AVGO", "AXON", "AZN", "BKR", "BKNG", "BIIB",
     "CDNS", "CEG", "CHTR", "CMCSA", "COST", "CPRT", "CRWD", "CSX", "CTAS", "CTSH",
@@ -48,6 +48,20 @@ hisseler = [
     "SLB", "T", "TGT", "UNH", "UPS", "USB", "V", "VZ", "WFC", "WMT"
 ]
 
+# 100 BIST Hissesi (.IS eklentili)
+bist_hisseleri = [
+    "AEFES.IS", "AGHOL.IS", "AHGAZ.IS", "AKBNK.IS", "AKCNS.IS", "AKFGY.IS", "AKFYE.IS", "AKSA.IS", "AKSEN.IS", "ALARK.IS",
+    "ALBRK.IS", "ALFAS.IS", "ANSGR.IS", "ARCLK.IS", "ASELS.IS", "ASTOR.IS", "BERA.IS", "BIENP.IS", "BIMAS.IS", "BIOEN.IS",
+    "BOBET.IS", "BRSAN.IS", "BRYAT.IS", "BUCIM.IS", "CANTE.IS", "CCOLA.IS", "CIMSA.IS", "CWENE.IS", "DOAS.IS", "DOHOL.IS",
+    "ECILC.IS", "ECZYT.IS", "EGEEN.IS", "EKGYO.IS", "ENJSA.IS", "ENKAI.IS", "EREGL.IS", "EUPWR.IS", "EUREK.IS", "FROTO.IS",
+    "GARAN.IS", "GESAN.IS", "GUBRF.IS", "GWIND.IS", "HALKB.IS", "HEKTS.IS", "IMASM.IS", "IPEKE.IS", "ISCTR.IS", "ISGYO.IS",
+    "ISMEN.IS", "KAYSE.IS", "KCAER.IS", "KCHOL.IS", "KONTR.IS", "KORDS.IS", "KOZAL.IS", "KOZAA.IS", "KRDMD.IS", "KZBGY.IS",
+    "MAVI.IS", "MGNTS.IS", "MHMTR.IS", "MIATK.IS", "MGROS.IS", "ODAS.IS", "OTKAR.IS", "OYAKC.IS", "PETKM.IS", "PGSUS.IS",
+    "PSGYO.IS", "REEDR.IS", "SAHOL.IS", "SASA.IS", "SDTTR.IS", "SISE.IS", "SKBNK.IS", "SMRTG.IS", "SOKM.IS", "TABGD.IS",
+    "TAVHL.IS", "TCELL.IS", "THYAO.IS", "TKFEN.IS", "TOASO.IS", "TSKB.IS", "TTKOM.IS", "TTRAK.IS", "TUKAS.IS", "TUPRS.IS",
+    "TURSG.IS", "ULKER.IS", "VAKBN.IS", "VESBE.IS", "VESTL.IS", "YEOTK.IS", "YKBNK.IS", "YYLGD.IS", "ZOREN.IS"
+]
+
 def telegram_bildirim_gonder(mesaj):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {"chat_id": CHAT_ID, "text": mesaj, "parse_mode": "HTML"}
@@ -56,33 +70,36 @@ def telegram_bildirim_gonder(mesaj):
     except Exception as e:
         print(f"Telegram hatasi: {e}")
 
-def tarama_yap():
-    print("150 hisselik tarama başlatılıyor...")
+def piyasa_tara(hisse_listesi, piyasa_adi):
+    print(f"{piyasa_adi} taraması başlatılıyor ({len(hisse_listesi)} hisse)...")
     sinyal_mesaji = ""
     
-    for symbol in hisseler:
+    for symbol in hisse_listesi:
         try:
             ticker = yf.Ticker(symbol, session=session)
             df = ticker.history(period="1mo", interval="1d")
             
             if df.empty or len(df) < 5:
-                time.sleep(0.3)
+                time.sleep(0.2)
                 continue
             
             cikis_fiyati = float(df['Close'].iloc[-1])
             onceki_fiyat = float(df['Close'].iloc[-2])
             
+            # Yükseliş kontrolü
             if cikis_fiyati > onceki_fiyat:
-                sinyal_mesaji += f"🟢 {symbol} - Fiyat: {cikis_fiyati:.2f}$\n"
+                temiz_sembol = symbol.replace(".IS", "")
+                para_birimi = "₺" if ".IS" in symbol else "$"
+                sinyal_mesaji += f"🟢 {temiz_sembol} - Fiyat: {cikis_fiyati:.2f}{para_birimi}\n"
                 
-            time.sleep(0.3)  # İstek aralarına 0.3 saniyelik güvenli bekleme
+            time.sleep(0.2)
                 
         except Exception as e:
             print(f"{symbol} taranırken hata: {e}")
-            time.sleep(0.5)
+            time.sleep(0.3)
 
     if sinyal_mesaji:
-        full_mesaj = f"🚀 <b>NASDAQ TARAMA SİNYALLERİ</b> 🚀\n\n{sinyal_mesaji}"
+        full_mesaj = f"🚀 <b>{piyasa_adi} TARAMA SİNYALLERİ</b> 🚀\n\n{sinyal_mesaji}"
         
         if len(full_mesaj) > 4000:
             for i in range(0, len(full_mesaj), 4000):
@@ -90,14 +107,18 @@ def tarama_yap():
         else:
             telegram_bildirim_gonder(full_mesaj)
             
-        print("Telegram'a sinyaller gönderildi!")
+        print(f"{piyasa_adi} sinyalleri Telegram'a gönderildi!")
     else:
-        print("Yeni sinyal bulunamadı.")
+        print(f"{piyasa_adi} için yeni sinyal bulunamadı.")
+
+def genel_tarama():
+    piyasa_tara(nasdaq_hisseleri, "NASDAQ")
+    piyasa_tara(bist_hisseleri, "BIST 100")
 
 # Otomatik tarama döngüsü (Her 1 saatte bir çalışır)
 def tarama_dongusu():
     while True:
-        tarama_yap()
+        genel_tarama()
         time.sleep(3600)
 
 # Taramayı arka planda başlat
